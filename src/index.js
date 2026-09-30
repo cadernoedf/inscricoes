@@ -5,10 +5,10 @@ async function init(db){
  CREATE TABLE IF NOT EXISTS players(id INTEGER PRIMARY KEY AUTOINCREMENT,team_id INTEGER NOT NULL,name TEXT NOT NULL,FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE CASCADE); CREATE TABLE IF NOT EXISTS draws(id INTEGER PRIMARY KEY AUTOINCREMENT,modality_id INTEGER NOT NULL,round_no INTEGER NOT NULL,match_no INTEGER NOT NULL,team1_id INTEGER,team2_id INTEGER,winner_id INTEGER,score1 INTEGER,score2 INTEGER,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);`); try{await db.exec(`ALTER TABLE draws ADD COLUMN winner_id INTEGER;`)}catch{} try{await db.exec(`ALTER TABLE draws ADD COLUMN score1 INTEGER;`)}catch{} try{await db.exec(`ALTER TABLE draws ADD COLUMN score2 INTEGER;`)}catch{}
  const c=await db.prepare("SELECT COUNT(*) n FROM modalities").first();
  if(!c?.n){
-  const seed=[["Pebolim",2,2],["Basquete 3x3",3,5],["Futsal",5,10],["Vôlei",6,12],["Handebol",5,10]];
+  const seed=[["Pebolim",2,2],["Ping Pong",1,1],["Basquete 3x3",3,5],["Futsal",5,10],["Vôlei",6,12],["Handebol",5,10]];
   for(const m of seed) await db.prepare("INSERT INTO modalities(name,min_players,max_players) VALUES(?,?,?)").bind(...m).run();
  }
- await db.prepare("UPDATE modalities SET min_players=5,max_players=10 WHERE name='Handebol'").run();
+ await db.prepare("UPDATE modalities SET min_players=5,max_players=10 WHERE name='Handebol'").run(); await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Ping Pong',1,1)").run();
  if(false){
  }
 }
