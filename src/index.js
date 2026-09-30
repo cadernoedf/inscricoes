@@ -15,6 +15,7 @@ async function init(db){
  await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Futsal (Feminino)',5,10)").run();
  await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Handebol (Feminino)',5,10)").run();
  await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Basquete (Feminino)',5,10)").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Badminton',1,1)").run();
  if(false){
  }
 }
