@@ -8,7 +8,13 @@ async function init(db){
   const seed=[["Pebolim",2,2],["Ping Pong",1,1],["Basquete 3x3",3,5],["Futsal",5,10],["Vôlei",6,12],["Handebol",5,10]];
   for(const m of seed) await db.prepare("INSERT INTO modalities(name,min_players,max_players) VALUES(?,?,?)").bind(...m).run();
  }
- await db.prepare("UPDATE modalities SET min_players=5,max_players=10 WHERE name='Handebol'").run(); await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Ping Pong',1,1)").run();
+ await db.prepare("UPDATE modalities SET name='Tênis de mesa' WHERE name='Ping Pong'").run();
+ await db.prepare("UPDATE modalities SET min_players=5,max_players=10 WHERE name='Handebol'").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Tênis de mesa',1,1)").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Queimada',5,99)").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Futsal (Feminino)',5,10)").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Handebol (Feminino)',5,10)").run();
+ await db.prepare("INSERT OR IGNORE INTO modalities(name,min_players,max_players) VALUES('Basquete (Feminino)',5,10)").run();
  if(false){
  }
 }
@@ -29,7 +35,7 @@ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name
 </main><script>
 let mods=[];
 async function loadMods(){mods=await fetch('/api/modalities').then(r=>r.json());modality.innerHTML='<option value="">Selecione...</option>'+mods.map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join('')}
-function fields(){let m=mods.find(x=>x.id==modality.value);players.innerHTML='';if(!m)return;let n=m.min_players;players.innerHTML='<label>Integrantes titulares</label><div class="hint">Obrigatórios: '+m.min_players+' integrantes. Substitutos são opcionais.</div>';for(let i=0;i<n;i++){let x=document.createElement('input');x.className='player';x.placeholder='Integrante '+(i+1);x.required=true;x.maxLength=80;players.appendChild(x)}if(m.max_players>n){let b=document.createElement('button');b.type='button';b.textContent='+ Adicionar substituto (opcional)';b.style.background='#e5e7eb';b.style.color='#111827';b.onclick=()=>{if(players.querySelectorAll('input').length<m.max_players){let x=document.createElement('input');x.className='player';x.placeholder='Substituto '+(players.querySelectorAll('input').length-m.min_players+1)+' (opcional)';x.required=false;players.insertBefore(x,b)}};players.appendChild(b)}}
+function fields(){let m=mods.find(x=>x.id==modality.value);players.innerHTML='';if(!m)return;let n=m.min_players;let livre=m.name==='Queimada';players.innerHTML='<label>Integrantes titulares</label><div class="hint">'+(livre?'Mínimo de 5 integrantes. Depois disso, adicione quantos integrantes precisar.':'Obrigatórios: '+m.min_players+' integrantes. Substitutos são opcionais.')+'</div>';for(let i=0;i<n;i++){let x=document.createElement('input');x.className='player';x.placeholder='Integrante '+(i+1);x.required=true;x.maxLength=80;players.appendChild(x)}if(livre||m.max_players>n){let b=document.createElement('button');b.type='button';b.textContent=livre?'+ Adicionar integrante':'+ Adicionar substituto (opcional)';b.style.background='#e5e7eb';b.style.color='#111827';b.onclick=()=>{if(livre||players.querySelectorAll('input').length<m.max_players){let x=document.createElement('input');x.className='player';x.placeholder=livre?'Integrante '+(players.querySelectorAll('input').length+1):'Substituto '+(players.querySelectorAll('input').length-m.min_players+1)+' (opcional)';x.required=false;x.maxLength=80;players.insertBefore(x,b)}};players.appendChild(b)}}
 modality.onchange=fields;
 f.onsubmit=async e=>{e.preventDefault();msg.innerHTML='';let body={class_name:class_name.value,modality_id:+modality.value,team_name:team_name.value.trim(),players:[...players.querySelectorAll('input')].map(x=>x.value.trim())};let r=await fetch('/api/teams',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});let j=await r.json();msg.className=r.ok?'ok':'err';msg.textContent=j.message||j.error;if(r.ok){f.reset();players.innerHTML='';loadList()}};
 async function loadList(){let data=await fetch('/api/teams').then(r=>r.json());if(!data.length){list.innerHTML='<p class="muted">Nenhuma equipe inscrita ainda.</p>';return}let groups={};for(let t of data)(groups[t.modality_name]??=[]).push(t);list.innerHTML=Object.entries(groups).map(([m,ts])=>'<h3>'+m+'</h3>'+ts.map(t=>'<div class="team"><b>'+t.class_name+(t.team_name?' • '+t.team_name:'')+'</b><div class="muted">'+t.players.join(', ')+'</div></div>').join('')).join('')}
