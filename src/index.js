@@ -34,7 +34,6 @@ tabForm.onclick=()=>{formCard.style.display='block';listCard.style.display='none
 tabList.onclick=()=>{formCard.style.display='none';listCard.style.display='block';tabForm.className='alt';tabList.className='';loadList()}
 loadMods();loadList();
 </script></body></html>`}
-}
 export default {async fetch(req,env){
  try{
   await init(env.DB); const u=new URL(req.url);
