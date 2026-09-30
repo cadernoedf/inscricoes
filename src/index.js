@@ -32,7 +32,18 @@ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name
 <label>Modalidade</label><select id="modality" required><option value="">Carregando...</option></select>
 <label>Nome da equipe <span class="muted">(opcional)</span></label><input id="team_name" maxlength="60" placeholder="Ex.: Trovão">
 <div id="players"></div><button>Confirmar inscrição</button><div id="msg"></div></form></section>
-<section class="card" id="listCard" style="display:none"><h2>Equipes inscritas</h2><div id="list">Carregando...</div></section><section class="card" id="rulesCard" style="display:none"><h2>Regulamento</h2><div id="rulesContent"><p class="muted">O regulamento será disponibilizado em breve.</p></div></section>
+<section class="card" id="listCard" style="display:none"><h2>Equipes inscritas</h2><div id="list">Carregando...</div></section><section class="card" id="rulesCard" style="display:none"><h2>Regulamento Geral do Interclasse</h2><div id="rulesContent">
+<h3>1. Finalidade</h3><p>O Interclasse do Colégio Esperanto tem por finalidade ampliar a participação dos alunos em atividades esportivas e promover a integração por meio de disputas amistosas, valorizando respeito, fraternidade, solidariedade, cultura de paz e fair play.</p>
+<h3>2. Objetivos</h3><p>Fomentar a prática do esporte escolar com fins educativos; possibilitar a identificação de talentos esportivos; desenvolver o intercâmbio sociocultural e esportivo; contribuir para o desenvolvimento integral, autonomia e cidadania dos alunos; e ampliar as oportunidades de acesso ao esporte escolar.</p>
+<h3>3. Modalidades</h3><p>Este regulamento considera somente as modalidades disponíveis no sistema de inscrições: <b>Badminton, Basquete 3x3, Basquete (Feminino), Futsal, Futsal (Feminino), Handebol, Handebol (Feminino), Pebolim, Queimada, Tênis de mesa e Vôlei.</b></p>
+<h3>4. Inscrições e participação</h3><p>As inscrições serão realizadas por este sistema. Poderão participar alunos regularmente matriculados e frequentando as aulas. Cada equipe deverá respeitar a quantidade de integrantes indicada no formulário da respectiva modalidade.</p>
+<h3>5. Organização dos jogos</h3><p>Locais, datas, horários e sistema de disputa serão definidos pelos professores de Educação Física e pela organização do evento. As equipes devem comparecer ao local da partida com pelo menos <b>10 minutos de antecedência</b>.</p>
+<h3>6. Uniformes e W.O.</h3><p>Em caso de uniformes iguais, a organização poderá determinar o uso de coletes. O regulamento prevê tolerância máxima de 5 minutos para a adequação. A equipe que perder por W.O. será eliminada da competição.</p>
+<h3>7. Conduta e disciplina</h3><p>Todos devem respeitar organização, professores, árbitros, adversários, público e equipe de apoio. Poderão ser aplicadas advertência, suspensão ou eliminação em situações que prejudiquem o andamento dos jogos, promovam desordem, desrespeito, violência, agressão, depredação, fraude de inscrição ou outras condutas incompatíveis com o evento.</p>
+<h3>8. Suspensões</h3><p>O aluno desqualificado ou expulso de uma partida, quando aplicável à modalidade, ficará automaticamente suspenso da partida seguinte. Casos não previstos serão analisados pela coordenação/direção.</p>
+<h3>9. Premiação</h3><p>O regulamento prevê troféus aos campeões e medalhas para 2º e 3º colocados.</p>
+<p class="hint" style="margin-top:18px"><b>Importante:</b> situações não previstas neste regulamento serão decididas pela organização do Interclasse e pela direção do Colégio Esperanto.</p>
+</div></section>
 </main><script>
 let mods=[];
 async function loadMods(){mods=await fetch('/api/modalities').then(r=>r.json());modality.innerHTML='<option value="">Selecione...</option>'+mods.map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join('')}
