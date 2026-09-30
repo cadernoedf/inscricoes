@@ -1,3 +1,3 @@
 # inscricoes
 
-<!-- redeploy 2026-09-30 11:52 BRT -->
+<!-- redeploy after Cloudflare cache clear 2026-09-30 -->
