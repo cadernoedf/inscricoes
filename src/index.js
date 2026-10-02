@@ -74,7 +74,7 @@ export default {async fetch(req,env){
    if(!m)return Response.json({error:"Modalidade inválida."},{status:400,headers:CORS});
    const ps=(b.players||[]).map(x=>String(x).trim()).filter(Boolean);
    if(!b.class_name||ps.length<m.min_players||ps.length>m.max_players)return Response.json({error:"Confira a turma e a quantidade de integrantes."},{status:400,headers:CORS});
-   const r=await env.DB.prepare("INSERT INTO teams(class_name,modality_id,team_name) VALUES(?,?,?)").bind(String(b.class_name).slice(0,40),b.modality_id,String(b.team_name||"").slice(0,60)).run();
+   let tn=String(b.team_name||"").trim().slice(0,60);if(!tn){const {results:same}=await env.DB.prepare("SELECT team_name FROM teams WHERE class_name=? AND modality_id=? ORDER BY id").bind(String(b.class_name).slice(0,40),b.modality_id).all();let used=new Set(same.map(x=>String(x.team_name||"").match(/^\(([A-Z]+)\)$/)?.[1]).filter(Boolean));let n=0,label="";do{n++;let x=n,s="";while(x){x--;s=String.fromCharCode(65+(x%26))+s;x=Math.floor(x/26)}label=s}while(used.has(label));tn="("+label+")"}const r=await env.DB.prepare("INSERT INTO teams(class_name,modality_id,team_name) VALUES(?,?,?)").bind(String(b.class_name).slice(0,40),b.modality_id,tn).run();
    for(const p of ps)await env.DB.prepare("INSERT INTO players(team_id,name) VALUES(?,?)").bind(r.meta.last_row_id,p.slice(0,80)).run();
    return Response.json({message:"Equipe inscrita com sucesso!"},{status:201});
   }
