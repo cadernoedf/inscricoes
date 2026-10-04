@@ -127,7 +127,7 @@ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name
 <div style="margin-top:10px;background:rgba(255,255,255,.12);border-radius:10px;padding:10px;text-align:center;font-weight:800">🤝🏆 Respeito também faz parte do jogo.</div></div>
 </div></section>
 <section class="card" id="sportRulesCard" style="display:none;background:linear-gradient(180deg,#f8fafc,#fff);padding:16px">
-<div style="text-align:center;padding:8px 8px 16px"><div style="font-size:46px">🏅</div><h2 style="margin:2px 0 6px">Regras das Modalidades</h2><p class="muted" style="margin:0">Regras adaptadas para o Interclasse do Colégio Esperanto.</p></div>
+<div style="text-align:center;padding:8px 8px 16px"><div style="font-size:46px">🏅</div><h2 style="margin:2px 0 6px">Regras das Modalidades</h2><p class="muted" style="margin:0 0 12px">Regras adaptadas para o Interclasse do Colégio Esperanto.</p><button type="button" onclick="printSportRules()" style="background:#111827;color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:800;cursor:pointer">🖨️ Imprimir regras das modalidades</button></div>
 <div style="display:grid;gap:12px">
 <div style="background:#fff7ed;border:1px solid #fdba74;border-left:6px solid #ea580c;border-radius:15px;padding:15px"><h3 style="margin:0 0 8px">⚽ Futsal</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px"><span style="background:#fff;padding:7px 9px;border-radius:8px">⏱️ <b>10 min</b></span><span style="background:#fff;padding:7px 9px;border-radius:8px">💧 <b>1 min hidratação</b></span></div><p>Partida com <b>10 minutos de jogo</b> e pausa de <b>1 minuto para hidratação</b>. Substituições serão permitidas com jogadores oficialmente inscritos.</p><div style="background:#fff;border:1px solid #fed7aa;border-radius:11px;padding:11px;margin:9px 0"><b>📋 Regras principais:</b><br>⚽ Laterais são cobrados com os pés.<br>🥅 Tiro de meta é realizado pelo goleiro conforme a regra do Futsal.<br>🚫 Não é permitido carrinho de forma imprudente ou que coloque o adversário em risco.<br>🟨🟥 Faltas e condutas antidesportivas poderão gerar advertência ou expulsão.</div><p style="margin-bottom:0">⚖️ Aplicam-se as regras usuais do Futsal e as adaptações gerais do Interclasse. Quando houver fase de grupos, valem a pontuação e os critérios definidos no Regulamento Geral. No mata-mata, empate será decidido por <b>3 pênaltis para cada equipe</b> e, persistindo, cobranças alternadas.</p></div>
 
@@ -148,6 +148,18 @@ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name
 <div style="background:#111827;color:#fff;border-radius:15px;padding:15px"><b>📌 Regra geral para todas as modalidades</b><p style="margin:7px 0 0;color:#e2e8f0">As adaptações acima foram definidas para o Interclasse. Em situações não detalhadas, serão utilizadas as regras usuais da modalidade, compatibilizadas com o Regulamento Geral e com as decisões da organização.</p></div>
 </div></section>
 </main><script>
+function printSportRules(){
+ const card=document.getElementById('sportRulesCard');
+ if(!card)return;
+ const w=window.open('','_blank');
+ if(!w){alert('Permita pop-ups para imprimir as regras das modalidades.');return}
+ const content=card.cloneNode(true);
+ const btn=content.querySelector('button[onclick="printSportRules()"]'); if(btn)btn.remove();
+ w.document.open();
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Regras das Modalidades • Interclasse</title><style>@page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111827;margin:0;font-size:11px;line-height:1.35}#sportRulesCard{display:block!important;background:#fff!important;padding:0!important;border:0!important;box-shadow:none!important}h2{font-size:22px}h3{font-size:15px;break-after:avoid}p{margin:5px 0}#sportRulesCard>div:nth-child(2)>div{break-inside:avoid-page;margin-bottom:7px!important;padding:9px!important}div{max-width:100%}button{display:none!important}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+content.outerHTML+'</body></html>');
+ w.document.close();
+ setTimeout(function(){w.focus();w.print()},350);
+}
 function printRegulation(){
  const card=document.getElementById('rulesCard');
  if(!card)return;
