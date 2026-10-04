@@ -211,7 +211,46 @@ async function loadPublicBracket(){
 }
 async function loadPublicSchedule(){
  const box=document.getElementById('publicSchedule');box.innerHTML='<p class="muted">Carregando jogos...</p>';
- try{const ds=await fetch('/api/public/draws').then(r=>r.json());const playable=ds.filter(d=>d.team1_id&&d.team2_id);if(!playable.length){box.innerHTML='<div style="text-align:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:16px;padding:28px 14px"><div style="font-size:42px">📋</div><h3>Ordem dos jogos ainda não disponível</h3><p class="muted">Ela aparecerá após o sorteio oficial.</p></div>';return}box.innerHTML=playable.map((d,i)=>'<div style="background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid #e2e8f0;border-left:5px solid #111827;border-radius:14px;padding:13px;margin:9px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>JOGO '+String(i+1).padStart(2,'0')+'</b><b>'+sportIcon(d.modality_name)+' '+safeText(d.modality_name)+'</b></div><div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;text-align:center;margin-top:10px"><b>'+teamLabel(d.c1,d.n1)+'</b><span style="background:#111827;color:#fff;border-radius:20px;padding:5px 8px;font-weight:900">×</span><b>'+teamLabel(d.c2,d.n2)+'</b></div></div>').join('')}catch(e){box.innerHTML='<div class="err">Não foi possível carregar a ordem dos jogos agora.</div>'}
+ try{
+  const [ds,gs]=await Promise.all([fetch('/api/public/draws').then(r=>r.json()),fetch('/api/public/group-draws').then(r=>r.json())]);
+  const palette=['#2563eb','#16a34a','#ea580c','#7c3aed','#db2777','#0891b2','#ca8a04','#dc2626','#4f46e5','#059669'];
+  const sections=[];
+
+  const groupMods={};gs.forEach(x=>{(groupMods[x.modality_name]??={})[x.group_name]??=[];groupMods[x.modality_name][x.group_name].push(x)});
+  Object.entries(groupMods).forEach(([mod,groups])=>{
+    const games=[];
+    Object.entries(groups).forEach(([g,teams])=>{
+      for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++)games.push({label:'Grupo '+g,a:teamLabel(teams[i].class_name,teams[i].team_name),b:teamLabel(teams[j].class_name,teams[j].team_name)});
+    });
+    const letters=Object.keys(groups);
+    if(letters.length>=2){
+      games.push({label:'Semifinal',a:'🥇 1º Grupo '+letters[0],b:'🥈 2º Grupo '+letters[1],future:true});
+      games.push({label:'Semifinal',a:'🥇 1º Grupo '+letters[1],b:'🥈 2º Grupo '+letters[0],future:true});
+      games.push({label:'Final',a:'🏅 Vencedor da Semi 1',b:'🏅 Vencedor da Semi 2',future:true});
+    }
+    sections.push({mod,games});
+  });
+
+  const standard={};ds.forEach(d=>(standard[d.modality_name]??=[]).push(d));
+  Object.entries(standard).forEach(([mod,arr])=>{
+    const rounds={};arr.forEach(d=>(rounds[d.round_no]??=[]).push(d));
+    const rn=Object.keys(rounds).map(Number).sort((a,b)=>a-b), games=[];
+    rn.forEach((r,ri)=>rounds[r].forEach((d,j)=>{
+      const phase=ri===rn.length-1&&rn.length>1?'Final':ri===rn.length-2&&rn.length>2?'Semifinal':'Fase '+(ri+1);
+      games.push({label:phase,a:d.team1_id?teamLabel(d.c1,d.n1):'🏅 Classificado',b:d.team2_id?teamLabel(d.c2,d.n2):'🏅 Classificado',future:!(d.team1_id&&d.team2_id)});
+    }));
+    sections.push({mod,games});
+  });
+
+  if(!sections.length){box.innerHTML='<div style="text-align:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:16px;padding:28px 14px"><div style="font-size:42px">📋</div><h3>Ordem dos jogos ainda não disponível</h3><p class="muted">Ela aparecerá após o sorteio oficial.</p></div>';return}
+
+  let globalNo=1;
+  box.innerHTML=sections.sort((a,b)=>a.mod.localeCompare(b.mod,'pt-BR')).map((s,si)=>{
+    const color=palette[si%palette.length];
+    return '<div style="margin:22px 0 30px"><div style="display:flex;align-items:center;gap:9px;background:'+color+';color:#fff;border-radius:14px;padding:11px 13px;margin-bottom:11px;box-shadow:0 5px 14px #0002"><span style="font-size:25px">'+sportIcon(s.mod)+'</span><div><div style="font-size:18px;font-weight:950">'+safeText(s.mod)+'</div><div style="font-size:11px;opacity:.85">'+s.games.length+' '+(s.games.length===1?'jogo':'jogos')+'</div></div></div>'+
+    s.games.map(g=>'<div style="background:'+(g.future?'#f8fafc':'#fff')+';border:1px solid #e2e8f0;border-left:5px solid '+color+';border-radius:14px;padding:12px;margin:9px 0;box-shadow:0 3px 10px #0f172a0a"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="color:'+color+'">JOGO '+String(globalNo++).padStart(2,'0')+'</b><span style="font-size:11px;font-weight:800;background:#eef2f7;border-radius:20px;padding:4px 8px">'+safeText(g.label)+'</span></div><div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:7px;text-align:center;margin-top:10px"><b style="overflow-wrap:anywhere">'+g.a+'</b><span style="background:'+color+';color:#fff;border-radius:50%;width:34px;height:34px;display:grid;place-items:center;font-weight:900">×</span><b style="overflow-wrap:anywhere">'+g.b+'</b></div></div>').join('')+'</div>';
+  }).join('');
+ }catch(e){box.innerHTML='<div class="err">Não foi possível carregar a ordem dos jogos agora.</div>'}
 }
 tabForm.onclick=()=>{formCard.style.display='block';listCard.style.display='none';rulesCard.style.display='none';bracketCard.style.display='none';scheduleCard.style.display='none';sportRulesCard.style.display='none';tabForm.className='';tabList.className='alt';tabRules.className='rules';tabSportRules.className='alt'}
 tabList.onclick=()=>{formCard.style.display='none';listCard.style.display='block';rulesCard.style.display='none';bracketCard.style.display='none';scheduleCard.style.display='none';sportRulesCard.style.display='none';tabForm.className='alt';tabList.className='';tabRules.className='rules';tabSportRules.className='alt';loadList()}
