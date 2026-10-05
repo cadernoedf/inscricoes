@@ -1,0 +1,34 @@
+name: Smoke test Interclasse
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar sintaxe e rotas criticas
+        shell: bash
+        run: |
+          node --check src/index.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const s=fs.readFileSync('src/index.js','utf8');
+          const required=[
+            '/api/admin/login',
+            '/api/admin/teams',
+            '/api/admin/draws',
+            '/api/admin/group-draws',
+            '/api/admin/hall-of-fame',
+            '/api/modalities',
+            'openAdminPanel',
+            'loadTeams',
+            'ensureDrawBase',
+            'loadHallAdmin'
+          ];
+          const missing=required.filter(x=>!s.includes(x));
+          if(missing.length){console.error('Itens criticos ausentes:',missing.join(', '));process.exit(1)}
+          console.log('Smoke test OK: sintaxe valida e fluxos criticos presentes.');
+          NODE
