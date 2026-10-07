@@ -274,7 +274,9 @@ function openHallSticker(x){let old=document.getElementById("hallStickerModal");
 export default {async fetch(req,env){
  try{
   await init(env.DB); const u=new URL(req.url);
-  const adminOK=()=>{const h=req.headers.get("authorization")||"";return h==="Basic "+btoa((env.ADMIN_USER||"admin")+":"+(env.ADMIN_PASSWORD||"1111"))};
+  const adminOK=()=>{const user=String(env.ADMIN_USER||""),pass=String(env.ADMIN_PASSWORD||"");if(!user||!pass)return false;const h=req.headers.get("authorization")||"";return h==="Basic "+btoa(user+":"+pass)};
+  const securityHeaders={"X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"same-origin","Permissions-Policy":"camera=(), microphone=(), geolocation=()"};
+  const secure=res=>{const h=new Headers(res.headers);for(const [k,v] of Object.entries(securityHeaders))h.set(k,v);return new Response(res.body,{status:res.status,statusText:res.statusText,headers:h})};
   if(u.pathname==="/api/public/group-draws"&&req.method==="GET"){const {results}=await env.DB.prepare(`SELECT g.*,m.name modality_name,t.class_name,t.team_name FROM group_draws g JOIN modalities m ON m.id=g.modality_id JOIN teams t ON t.id=g.team_id ORDER BY m.name,g.group_name,g.position_no`).all();return Response.json(results)}
   if(u.pathname==="/api/public/draws"&&req.method==="GET"){const {results}=await env.DB.prepare(`SELECT d.id,d.modality_id,d.round_no,d.match_no,d.team1_id,d.team2_id,m.name modality_name,t1.class_name c1,t1.team_name n1,t2.class_name c2,t2.team_name n2 FROM draws d JOIN modalities m ON m.id=d.modality_id LEFT JOIN teams t1 ON t1.id=d.team1_id LEFT JOIN teams t2 ON t2.id=d.team2_id ORDER BY m.name,d.round_no,d.match_no`).all();return Response.json(results)}
   if(u.pathname==="/api/public/hall-of-fame"&&req.method==="GET"){const {results}=await env.DB.prepare("SELECT id,event_date,modality_name,class_name,team_name,placement,champion_names,photo,category FROM hall_of_fame ORDER BY event_date DESC,placement,modality_name,class_name").all();return Response.json(results)}
@@ -329,5 +331,5 @@ async function draw(){if(!am.value){msg.textContent="Selecione uma modalidade.";
    return Response.json({message:"Equipe inscrita com sucesso!",team_name:tn},{status:201});
   }
   return new Response(page(),{headers:{"content-type":"text/html; charset=utf-8"}});
- }catch(e){return Response.json({error:"Erro interno: "+e.message},{status:500})}
+ }catch(e){return Response.json({error:"Erro interno."},{status:500})}
 }};
