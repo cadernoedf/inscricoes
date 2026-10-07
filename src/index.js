@@ -2,6 +2,14 @@ const CORS={"content-type":"application/json; charset=utf-8"};
 const publicCacheHeaders=(seconds=3600)=>({"Cache-Control":"public, max-age=60, s-maxage="+seconds+", stale-while-revalidate=86400});
 const cachedJSON=(data,seconds=3600)=>Response.json(data,{headers:publicCacheHeaders(seconds)});
 let DB_READY=false;
+const registrationAttempts=new Map();
+function registrationAllowed(req){
+ const ip=req.headers.get("CF-Connecting-IP")||"unknown",now=Date.now(),windowMs=60000,max=8;
+ let x=registrationAttempts.get(ip);if(!x||now-x.start>=windowMs)x={start:now,count:0};
+ x.count++;registrationAttempts.set(ip,x);
+ if(registrationAttempts.size>2000)for(const [k,v] of registrationAttempts)if(now-v.start>=windowMs)registrationAttempts.delete(k);
+ return x.count<=max;
+}
 async function init(db){
  if(DB_READY)return;
  await db.exec(`CREATE TABLE IF NOT EXISTS modalities(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,min_players INTEGER NOT NULL,max_players INTEGER NOT NULL,active INTEGER NOT NULL DEFAULT 1);
@@ -321,6 +329,10 @@ async function draw(){if(!am.value){msg.textContent="Selecione uma modalidade.";
   if(u.pathname==="/api/registration-status"&&req.method==="GET"){const s=await env.DB.prepare("SELECT value FROM settings WHERE key='registrations_open'").first(),d=await env.DB.prepare("SELECT value FROM settings WHERE key='registration_start'").first();return Response.json({open:s?.value!=="0",start:d?.value||"2026-11-16T00:00"})}
   if(u.pathname==="/api/teams"&&req.method==="GET"){const {results}=await env.DB.prepare(`SELECT t.id,t.class_name,t.team_name,t.gender,COALESCE(t.is_test,0) is_test,m.name modality_name,COALESCE(m.individual,0) modality_individual,COALESCE(m.gender_mode,'mixed') modality_gender_mode,COALESCE(m.emoji,'🏆') modality_emoji,GROUP_CONCAT(p.name,'|||') players FROM teams t JOIN modalities m ON m.id=t.modality_id LEFT JOIN players p ON p.team_id=t.id GROUP BY t.id ORDER BY m.name,t.class_name,t.created_at`).all();return Response.json(results.map(x=>({...x,players:x.players?x.players.split("|||"):[]})))}
   if(u.pathname==="/api/teams"&&req.method==="POST"){
+   const ct=(req.headers.get("content-type")||"").toLowerCase();if(!ct.includes("application/json"))return Response.json({error:"Requisição inválida."},{status:415,headers:CORS});
+   const origin=req.headers.get("origin");if(origin&&origin!==u.origin)return Response.json({error:"Origem não permitida."},{status:403,headers:CORS});
+   if(!registrationAllowed(req))return Response.json({error:"Muitas tentativas em pouco tempo. Aguarde um minuto e tente novamente."},{status:429,headers:{...CORS,"Retry-After":"60"}});
+   if(Number(req.headers.get("content-length")||0)>20000)return Response.json({error:"Dados de inscrição muito grandes."},{status:413,headers:CORS});
    const sd=await env.DB.prepare("SELECT value FROM settings WHERE key='registration_start'").first(),registrationStart=Date.parse((sd?.value||"2026-11-16T00:00")+":00-03:00");if(Date.now()<registrationStart)return Response.json({error:"As inscrições ainda não foram abertas. Aguarde o contador regressivo! 🏆"},{status:403,headers:CORS});
    const st=await env.DB.prepare("SELECT value FROM settings WHERE key='registrations_open'").first();if(st?.value==="0")return Response.json({error:"Que pena, as inscrições já foram encerradas! 🏆 Não deu tempo desta vez, mas esperamos você no Interclasse do próximo ano. Até lá! 👋"},{status:403,headers:CORS});
    const b=await req.json(); const m=await env.DB.prepare("SELECT * FROM modalities WHERE id=? AND active=1").bind(b.modality_id).first();
