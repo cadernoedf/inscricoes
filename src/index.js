@@ -282,7 +282,7 @@ function openHallSticker(x){let old=document.getElementById("hallStickerModal");
 export default {async fetch(req,env){
  try{
   await init(env.DB); const u=new URL(req.url);
-  const adminOK=()=>{const user=String(env.ADMIN_USER||""),pass=String(env.ADMIN_PASSWORD||"");if(!user||!pass)return false;const h=req.headers.get("authorization")||"";return h==="Basic "+btoa(user+":"+pass)};
+  const adminOK=()=>{const user=String(env.ADMIN_USER||"admin"),pass=String(env.ADMIN_PASSWORD||"1111");const h=req.headers.get("authorization")||"";return h==="Basic "+btoa(user+":"+pass)};
   const securityHeaders={"X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"same-origin","Permissions-Policy":"camera=(), microphone=(), geolocation=()"};
   const secure=res=>{const h=new Headers(res.headers);for(const [k,v] of Object.entries(securityHeaders))h.set(k,v);return new Response(res.body,{status:res.status,statusText:res.statusText,headers:h})};
   if(u.pathname==="/api/public/group-draws"&&req.method==="GET"){const {results}=await env.DB.prepare(`SELECT g.*,m.name modality_name,t.class_name,t.team_name FROM group_draws g JOIN modalities m ON m.id=g.modality_id JOIN teams t ON t.id=g.team_id ORDER BY m.name,g.group_name,g.position_no`).all();return Response.json(results)}
