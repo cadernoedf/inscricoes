@@ -1,5 +1,5 @@
 const CORS={"content-type":"application/json; charset=utf-8"};
-const publicCacheHeaders=(seconds=3600)=>({"Cache-Control":"public, max-age=60, s-maxage="+seconds+", stale-while-revalidate=86400});
+const publicCacheHeaders=(seconds=3600)=>({"Cache-Control":"public, max-age=60, s-maxage="+seconds+", stale-while-revalidate=86400"});
 const cachedJSON=(data,seconds=3600)=>Response.json(data,{headers:publicCacheHeaders(seconds)});
 let DB_READY=false;
 const registrationAttempts=new Map();
